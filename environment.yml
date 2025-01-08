@@ -1,0 +1,24 @@
+name: broker-api
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - fastapi
+  - uvicorn
+  - sqlalchemy
+  - pandas
+  - python-jose
+  - python-multipart
+  - filelock
+  - websockets
+  - pydantic
+  - pytest
+  - black
+  - flake8
+  - isort
+  - mypy
+  - pip
+  - pip:
+    - pydantic-settings
+    - python-multipart
