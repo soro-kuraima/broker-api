@@ -8,8 +8,10 @@ dependencies:
   - uvicorn
   - sqlalchemy
   - pandas
+  - passlib
   - python-jose
   - python-multipart
+  - bcrypt
   - filelock
   - websockets
   - pydantic

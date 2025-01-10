@@ -1,22 +1,40 @@
+# app/core/security.py
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
+from typing import Union, Any
+from jose import jwt
+from passlib.context import CryptContext
 from ..config import get_settings
-from typing import Any
 
 settings = get_settings()
 
-def create_access_token(subject: str | Any) -> str:
-    expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    expire = datetime.utcnow() + expires_delta
-    
-    to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, settings.ALGORITHM)
-    
-    return encoded_jwt
+# Password hashing setup
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_token(token: str) -> bool:
-    try:
-        jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        return True
-    except JWTError:
-        return False
+def create_token(subject: Union[str, Any], token_type: str = "access") -> tuple[str, datetime]:
+    """Create a JWT token"""
+    if token_type == "access":
+        expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    else:  # refresh token
+        expires_delta = timedelta(days=7)  # 7 days for refresh token
+        
+    expire = datetime.utcnow() + expires_delta
+    to_encode = {
+        "sub": str(subject),
+        "exp": expire,
+        "token_type": token_type
+    }
+    
+    encoded_jwt = jwt.encode(
+        to_encode, 
+        settings.SECRET_KEY, 
+        algorithm=settings.ALGORITHM
+    )
+    return encoded_jwt, expire
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a plain password against a hashed password"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """Hash a password"""
+    return pwd_context.hash(password)
