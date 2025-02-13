@@ -100,7 +100,7 @@ class CSVManager:
         except Exception as e:
             logger.warning(f"Failed to cleanup old backups: {str(e)}")
 
-    def get_previous_backups(self, count=3) -> list:
+    def get_previous_backups(self, count=5) -> list:
         """
         Return a list of the most recent backup file names.
         The list is sorted by modification time (most recent first).

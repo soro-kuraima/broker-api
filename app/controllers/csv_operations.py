@@ -64,7 +64,7 @@ async def delete_csv_entry(
 
 @router.get("/csv/backups")
 async def list_backups(
-    count: int = Query(3, description="Number of recent backups to retrieve"),
+    count: int = Query(5, description="Number of recent backups to retrieve"),
     current_user: UserSession = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
