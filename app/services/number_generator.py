@@ -48,6 +48,13 @@ class NumberGenerator:
             self.task = asyncio.create_task(self._run())
             print("Number generator started")
 
+    def stop(self):
+        if self.is_running:
+            self.is_running = False
+            if hasattr(self, 'task'):
+                self.task.cancel()
+            print("Number generator stopped")
+
     def get_latest(self, db: Session) -> RandomNumber:
         latest = db.query(RandomNumber).order_by(RandomNumber.timestamp.desc()).first()
         if latest:
