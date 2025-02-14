@@ -9,9 +9,11 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = "your-super-secret-key"
     ALGORITHM: str = "HS256"
-    DATABASE_URL: str = "sqlite:///./app.db"
-    CSV_FILE_PATH: Path = Path("backend_table.csv")
-    BACKUP_DIR: Path = Path("broker-api-backup")
+    # Use env var DATABASE_URL if provided, otherwise default to the secure path.
+    DATABASE_URL: str = "sqlite:////data/app.db"
+    # CSV_FILE_PATH will point to the secure /data directory.
+    CSV_FILE_PATH: Path = Path("/data/backend_table.csv")
+    BACKUP_DIR: Path = Path("/data/broker-api-backup")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
 
     class Config:
