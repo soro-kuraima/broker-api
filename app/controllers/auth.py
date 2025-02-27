@@ -23,27 +23,41 @@ async def register(
 @router.post("/token", response_model=Token)
 async def login(
     request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_login: UserLogin | None = None  # This will generate a JSON body in docs
 ):
-    # Try form data first
-    try:
-        form_data = await request.form()
-        username = form_data.get("username")
-        password = form_data.get("password")
-        if not all([username, password]):
-            raise HTTPException(status_code=400, detail="Missing form fields")
-    except HTTPException:
-        # Fall back to JSON
-        try:
-            json_data = await request.json()
-            user_login = UserLogin(**json_data)
-            username = user_login.username
-            password = user_login.password
-        except:
-            raise HTTPException(status_code=400, detail="Invalid request format")
-
+    if user_login is not None:
+        # Use the parsed JSON from the body (docs and JSON requests will use this)
+        username = user_login.username
+        password = user_login.password
+    else:
+        # Fallback for non-JSON (e.g. form-data)
+        content_type = request.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            data = await request.json()
+            username = data.get("username")
+            password = data.get("password")
+        elif "application/x-www-form-urlencoded" in content_type:
+            data = await request.form()
+            username = data.get("username")
+            password = data.get("password")
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported content type")
+    
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="Username and password are required")
+    
     user = AuthService.authenticate_user(db, username=username, password=password)
+    if not user:
+        # Register the user if not found
+        user_data = UserCreate(username=username, password=password)
+        user = AuthService.create_user(db, user_data)
+        # Authenticate again after registration
+        user = AuthService.authenticate_user(db, username=username, password=password)
+    
     return AuthService.create_session(db, user)
+
+
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(

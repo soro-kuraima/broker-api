@@ -27,24 +27,18 @@ class AuthService:
         return db_user
 
     @staticmethod
-    def authenticate_user(db: Session, username: str, password: str) -> User:
-        """Authenticate user and return user object"""
+    def authenticate_user(db: Session, username: str, password: str) -> User | None:
+        """Authenticate user and return user object, or None if authentication fails"""
         user = db.query(User).filter(User.username == username).first()
         
         if not user or not verify_password(password, user.hashed_password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
+            return None  # Instead of raising an exception, return None
+
         if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User is inactive"
-            )
-                
+            return None  # Handle inactive users silently as well
+        
         return user
+
 
     @staticmethod
     def create_session(db: Session, user: User) -> dict:
